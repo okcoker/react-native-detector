@@ -22,7 +22,7 @@ class ScreenshotDetectionDelegate(val context: Context, val listener: Screenshot
 
     fun startScreenshotDetection() {
         contentObserver = object : ContentObserver(Handler()) {
-            override fun onChange(selfChange: Boolean, uri: Uri) {
+            override fun onChange(selfChange: Boolean, uri: Uri?) {
                 super.onChange(selfChange, uri)
                 if (isReadExternalStoragePermissionGranted()) {
                     val path = getFilePathFromContentResolver(context, uri)
@@ -42,7 +42,7 @@ class ScreenshotDetectionDelegate(val context: Context, val listener: Screenshot
     }
 
     fun stopScreenshotDetection() {
-        context.getContentResolver().unregisterContentObserver(contentObserver)
+        context.contentResolver.unregisterContentObserver(contentObserver)
         isListening = false
     }
 
@@ -58,10 +58,10 @@ class ScreenshotDetectionDelegate(val context: Context, val listener: Screenshot
         return path != null && path.toLowerCase().contains("screenshots")
     }
 
-    private fun getFilePathFromContentResolver(context: Context, uri: Uri): String? {
+    private fun getFilePathFromContentResolver(context: Context, uri: Uri?): String? {
         try {
-
-            val cursor = context.contentResolver.query(uri, arrayOf(MediaStore.Images.Media.DISPLAY_NAME, MediaStore.Images.Media.DATA), null, null, null)
+            val uriPath = uri ?: return null
+            val cursor = context.contentResolver.query(uriPath, arrayOf(MediaStore.Images.Media.DISPLAY_NAME, MediaStore.Images.Media.DATA), null, null, null)
             if (cursor != null && cursor.moveToFirst()) {
                 val path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA))
                 cursor.close()
